@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 
 import '../../data/model/song.dart';
+import '../now_playing/playing.dart';
 class MusicApp extends StatelessWidget {
   const MusicApp({super.key});
 
@@ -18,7 +19,8 @@ class MusicApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: MusicHomePage(),
+      home: const MusicHomePage(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -136,7 +138,8 @@ class _HomeTabPageState extends State<HomeTabPage> {
   }
 
   Widget getRow(int index){
-    return _songIteamSection(
+    print(songs[index].imagePath); // Print imagePath here to debug
+    return _songItemSection(
       parent: this,
       song: songs[index],
     );
@@ -151,31 +154,72 @@ class _HomeTabPageState extends State<HomeTabPage> {
       });
     });
   }
+
+  void showBottomSheet(){
+    showModalBottomSheet(context: context, builder: (context) {
+      return ClipRRect(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        child: Container(
+          height: 400,
+          color: Colors.grey,
+          child:Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const Text('Modal Botton sheet'),
+                ElevatedButton(
+                  onPressed: ()=> Navigator.pop(context),
+                  child: const Text('Close Botton sheet'),
+                )
+              ],
+            ),
+          ) ,
+        ),
+      );
+    });
+  }
+  
+  
+  void navigate(Song song){
+    Navigator.push(context,
+    CupertinoPageRoute(builder: (context){
+      return NowPlaying(
+      songs: songs,
+      playingSong: song,
+      );
+    })
+    );
+  }
 }
 
-class _songIteamSection extends StatelessWidget{
-  const _songIteamSection({
+class _songItemSection extends StatelessWidget {
+  const _songItemSection({
     required this.parent,
     required this.song,
-});
+  });
+
   final _HomeTabPageState parent;
   final Song song;
-  
+
   @override
   Widget build(BuildContext context) {
+    // Kiểm tra nếu imagePath là URL tương đối và ghép với URL cơ sở
+    String imageUrl = 'http://10.0.2.2:8080${song.imagePath}';
+
     return ListTile(
       contentPadding: const EdgeInsets.only(
         left: 24,
         right: 8,
       ),
-      leading:ClipRRect(
+      leading: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: FadeInImage.assetNetwork(
-          placeholder: 'assets/itunes.png',
-          image: song.imagePath,
+        child: Image.network(
+          imageUrl,  // Sử dụng imageUrl đã ghép đầy đủ
           width: 48,
           height: 48,
-          imageErrorBuilder: (context, error, stackTrace){
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
             return Image.asset(
               'assets/itunes.png',
               width: 48,
@@ -183,15 +227,18 @@ class _songIteamSection extends StatelessWidget{
             );
           },
         ),
-      ) ,
-      title: Text(
-        song.ten
       ),
+      title: Text(song.ten),
       subtitle: Text(song.tacgia),
       trailing: IconButton(
         icon: const Icon(Icons.more_horiz),
-        onPressed: (){},
+        onPressed: () {
+          parent.showBottomSheet();
+        },
       ),
+      onTap: () {
+        parent.navigate(song);
+      },
     );
   }
 }

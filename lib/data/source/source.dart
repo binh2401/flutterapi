@@ -17,8 +17,14 @@ class RemoteDatasource implements Datasource {
         final bodyContent = utf8.decode(response.bodyBytes);
         var songList = jsonDecode(bodyContent);
 
+        // Kiểm tra nếu API trả về một đối tượng duy nhất hoặc một danh sách
         if (songList is List) {
           List<Song> songs = songList.map((song) => Song.fromJson(song)).toList();
+          return songs;
+        } else if (songList is Map) {
+          // Ép kiểu Map<dynamic, dynamic> thành Map<String, dynamic>
+          Map<String, dynamic> songMap = songList.cast<String, dynamic>();
+          List<Song> songs = [Song.fromJson(songMap)];
           return songs;
         } else {
           throw Exception('Dữ liệu không đúng định dạng');
@@ -33,6 +39,8 @@ class RemoteDatasource implements Datasource {
     }
   }
 }
+
+
 
 class localDataSource implements Datasource {
   @override
