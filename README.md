@@ -1,6 +1,7 @@
 # demonhac
+đây là flutter call api từ web về
+vẫn đang phát triển
 
-A new Flutter project.
 
 ## Getting Started
 
