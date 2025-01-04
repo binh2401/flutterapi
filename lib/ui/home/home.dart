@@ -1,5 +1,6 @@
 import 'package:demonhac/ui/discovery/discovery.dart';
 import 'package:demonhac/ui/home/viewmodel.dart';
+import 'package:demonhac/ui/now_playing/audioplayer_manager.dart';
 import 'package:demonhac/ui/setting/setting.dart';
 import 'package:demonhac/ui/user/user.dart';
 import 'package:flutter/cupertino.dart';
@@ -106,6 +107,7 @@ class _HomeTabPageState extends State<HomeTabPage> {
   @override
   void dispose() {
     _viewModel.songStream.close();
+    AudioPlayerManager().dispose();
     super.dispose();
   }
 

@@ -41,6 +41,7 @@ class _NowPlayingPageState extends State<NowPlayingPage>
   late Song _song;
   bool _isShuffle = false;
 
+  late LoopMode _loopMode;
 
   @override
   void initState() {
@@ -52,10 +53,12 @@ class _NowPlayingPageState extends State<NowPlayingPage>
       duration: const Duration(microseconds: 12000),
     );
     String fullAudioUrl = 'http://10.0.2.2:8080${_song.audioPath}';
-    _audioPlayerManager = AudioPlayerManager(songUrl: fullAudioUrl);
+    _audioPlayerManager = AudioPlayerManager();
+    _audioPlayerManager.updateSongUrl(fullAudioUrl);
     _audioPlayerManager.init();
-    
+
     _selectedItemIndex = widget.songs.indexOf(widget.playingSong);
+    _loopMode = LoopMode.off;
   }
 
   @override
@@ -172,13 +175,13 @@ class _NowPlayingPageState extends State<NowPlayingPage>
     );
   }
 
-  @override
-  void dispose(){
-    _audioPlayerManager.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   _audioPlayerManager.dispose();
+  // }
 
   Widget _mediaButtons() {
-    return  SizedBox(
+    return SizedBox(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
@@ -199,9 +202,9 @@ class _NowPlayingPageState extends State<NowPlayingPage>
               color: Colors.deepPurple,
               size: 26),
           MediaButtonControl(
-              function: null,
-              icon: Icons.repeat,
-              color: Colors.deepPurple,
+              function: _setupReapiOption,
+              icon: _repeatingIcon(),
+              color: _getRepratingIconsColor(),
               size: 24),
         ],
       ),
@@ -229,7 +232,6 @@ class _NowPlayingPageState extends State<NowPlayingPage>
             thumbColor: Colors.deepPurple,
             thumbGlowColor: Colors.green.withOpacity(0.3),
             thumbRadius: 10.0,
-
           );
         });
   }
@@ -278,52 +280,82 @@ class _NowPlayingPageState extends State<NowPlayingPage>
     );
   }
 
-  void _setNextSong(){
-   if(_isShuffle){
-     var random =Random();
-     _selectedItemIndex = random.nextInt(widget.songs.length );
-   } else{
-     ++_selectedItemIndex;
-   }
-   if(_selectedItemIndex >=  widget.songs.length){
-     _selectedItemIndex =_selectedItemIndex  % widget.songs.length;
-   }
-    final nextSong= widget.songs[_selectedItemIndex];
-    _audioPlayerManager.updateSongUrl('http://10.0.2.2:8080${nextSong.audioPath}');
+  void _setupReapiOption() {
+    if (_loopMode == LoopMode.off) {
+      _loopMode = LoopMode.one;
+    } else if (_loopMode == LoopMode.one) {
+      _loopMode = LoopMode.all;
+    } else {
+      _loopMode = LoopMode.off;
+    }
     setState(() {
-      _song = nextSong;
+      _audioPlayerManager.player.setLoopMode(_loopMode);
     });
   }
 
-  void _setPrevSong(){
-    if(_isShuffle){
-      var random =Random();
+  Color? _getRepratingIconsColor() {
+    return _loopMode == LoopMode.off ? Colors.grey : Colors.deepPurple;
+  }
+
+  IconData _repeatingIcon() {
+    return switch (_loopMode) {
+      LoopMode.one => Icons.repeat_one,
+      LoopMode.all => Icons.repeat_on,
+      _ => Icons.repeat,
+    };
+  }
+
+  void _setNextSong() {
+    if (_isShuffle) {
+      var random = Random();
       _selectedItemIndex = random.nextInt(widget.songs.length);
-    } else{
-      --_selectedItemIndex;
+    } else if(_selectedItemIndex < widget.songs.length -1) {
+      ++_selectedItemIndex;
+    }else if(_loopMode == LoopMode.all && _selectedItemIndex ==widget.songs.length -1){
+      _selectedItemIndex =0;
+
     }
-    if(_selectedItemIndex <  0){
-      _selectedItemIndex = (-1 * _selectedItemIndex)  % widget.songs.length;
+    if (_selectedItemIndex >= widget.songs.length) {
+      _selectedItemIndex = _selectedItemIndex % widget.songs.length;
     }
-    final nextSong= widget.songs[_selectedItemIndex];
-    _audioPlayerManager.updateSongUrl('http://10.0.2.2:8080${nextSong.audioPath}');
+    final nextSong = widget.songs[_selectedItemIndex];
+    _audioPlayerManager
+        .updateSongUrl('http://10.0.2.2:8080${nextSong.audioPath}');
     setState(() {
       _song = nextSong;
     });
   }
 
-  void _setShuffle(){
+  void _setPrevSong() {
+    if (_isShuffle) {
+      var random = Random();
+      _selectedItemIndex = random.nextInt(widget.songs.length);
+    } else if(_selectedItemIndex >0) {
+      --_selectedItemIndex;
+    } else if(_loopMode ==LoopMode.all && _selectedItemIndex ==0){
+      _selectedItemIndex=widget.songs.length -1;
+    }
+    if (_selectedItemIndex < 0) {
+      _selectedItemIndex = (-1 * _selectedItemIndex) % widget.songs.length;
+    }
+    final nextSong = widget.songs[_selectedItemIndex];
+    _audioPlayerManager
+        .updateSongUrl('http://10.0.2.2:8080${nextSong.audioPath}');
+    setState(() {
+      _song = nextSong;
+    });
+  }
+
+  void _setShuffle() {
     setState(() {
       _isShuffle = !_isShuffle;
     });
   }
 
-  Color? _getShuffleColor(){
+  Color? _getShuffleColor() {
     return _isShuffle ? Colors.deepPurple : Colors.grey;
   }
 }
-
-
 
 class MediaButtonControl extends StatefulWidget {
   const MediaButtonControl({
