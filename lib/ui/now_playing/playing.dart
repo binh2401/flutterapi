@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:demonhac/data/model/song.dart';
 import 'package:demonhac/ui/now_playing/audioplayer_manager.dart';
@@ -37,7 +39,7 @@ class _NowPlayingPageState extends State<NowPlayingPage>
   late AudioPlayerManager _audioPlayerManager;
   late int _selectedItemIndex;
   late Song _song;
-
+  bool _isShuffle = false;
 
 
   @override
@@ -181,9 +183,9 @@ class _NowPlayingPageState extends State<NowPlayingPage>
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           MediaButtonControl(
-              function: null,
+              function: _setShuffle,
               icon: Icons.shuffle,
-              color: Colors.deepPurple,
+              color: _getShuffleColor(),
               size: 24),
           MediaButtonControl(
               function: _setPrevSong,
@@ -277,7 +279,15 @@ class _NowPlayingPageState extends State<NowPlayingPage>
   }
 
   void _setNextSong(){
-    ++_selectedItemIndex;
+   if(_isShuffle){
+     var random =Random();
+     _selectedItemIndex = random.nextInt(widget.songs.length );
+   } else{
+     ++_selectedItemIndex;
+   }
+   if(_selectedItemIndex >=  widget.songs.length){
+     _selectedItemIndex =_selectedItemIndex  % widget.songs.length;
+   }
     final nextSong= widget.songs[_selectedItemIndex];
     _audioPlayerManager.updateSongUrl('http://10.0.2.2:8080${nextSong.audioPath}');
     setState(() {
@@ -286,14 +296,33 @@ class _NowPlayingPageState extends State<NowPlayingPage>
   }
 
   void _setPrevSong(){
-    --_selectedItemIndex;
+    if(_isShuffle){
+      var random =Random();
+      _selectedItemIndex = random.nextInt(widget.songs.length);
+    } else{
+      --_selectedItemIndex;
+    }
+    if(_selectedItemIndex <  0){
+      _selectedItemIndex = (-1 * _selectedItemIndex)  % widget.songs.length;
+    }
     final nextSong= widget.songs[_selectedItemIndex];
     _audioPlayerManager.updateSongUrl('http://10.0.2.2:8080${nextSong.audioPath}');
     setState(() {
       _song = nextSong;
     });
   }
+
+  void _setShuffle(){
+    setState(() {
+      _isShuffle = !_isShuffle;
+    });
+  }
+
+  Color? _getShuffleColor(){
+    return _isShuffle ? Colors.deepPurple : Colors.grey;
+  }
 }
+
 
 
 class MediaButtonControl extends StatefulWidget {

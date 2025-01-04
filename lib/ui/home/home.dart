@@ -45,15 +45,20 @@ class _MusicHomePageState extends State<MusicHomePage> {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text('Music'),
+    // trailing: IconButton(
+    // onPressed: () {},
+    // icon: const Icon(Icons.find_replace_sharp),
+  //  )
+
       ),
       child: CupertinoTabScaffold(
         tabBar: CupertinoTabBar(
           backgroundColor: Theme.of(context).colorScheme.onInverseSurface,
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Discovery'),
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Account'),
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Setting'),
+            BottomNavigationBarItem(icon: Icon(Icons.find_in_page), label: 'Discovery'),
+            BottomNavigationBarItem(icon: Icon(Icons.account_circle), label: 'Account'),
+            BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Setting'),
           ],
         ),
         tabBuilder: (BuildContext contex, int index) {
@@ -155,6 +160,10 @@ class _HomeTabPageState extends State<HomeTabPage> {
     });
   }
 
+  void find(){
+
+}
+
   void showBottomSheet(){
     showModalBottomSheet(context: context, builder: (context) {
       return ClipRRect(
@@ -179,8 +188,8 @@ class _HomeTabPageState extends State<HomeTabPage> {
       );
     });
   }
-  
-  
+
+
   void navigate(Song song){
     Navigator.push(context,
     CupertinoPageRoute(builder: (context){
