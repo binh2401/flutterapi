@@ -54,8 +54,13 @@ class _NowPlayingPageState extends State<NowPlayingPage>
     );
     String fullAudioUrl = 'http://10.0.2.2:8080${_song.audioPath}';
     _audioPlayerManager = AudioPlayerManager();
-    _audioPlayerManager.updateSongUrl(fullAudioUrl);
-    _audioPlayerManager.init();
+    if(_audioPlayerManager.songUrl.compareTo(fullAudioUrl) !=0){
+      _audioPlayerManager.updateSongUrl(fullAudioUrl);
+      _audioPlayerManager.prepare(isNewSong: true);
+    } else{
+      _audioPlayerManager.prepare(isNewSong: false);
+    }
+
 
     _selectedItemIndex = widget.songs.indexOf(widget.playingSong);
     _loopMode = LoopMode.off;
@@ -321,6 +326,7 @@ class _NowPlayingPageState extends State<NowPlayingPage>
     final nextSong = widget.songs[_selectedItemIndex];
     _audioPlayerManager
         .updateSongUrl('http://10.0.2.2:8080${nextSong.audioPath}');
+    _audioPlayerManager.prepare(isNewSong: true);
     setState(() {
       _song = nextSong;
     });
@@ -341,6 +347,7 @@ class _NowPlayingPageState extends State<NowPlayingPage>
     final nextSong = widget.songs[_selectedItemIndex];
     _audioPlayerManager
         .updateSongUrl('http://10.0.2.2:8080${nextSong.audioPath}');
+    _audioPlayerManager.prepare(isNewSong: true);
     setState(() {
       _song = nextSong;
     });
