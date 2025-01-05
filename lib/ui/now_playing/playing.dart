@@ -210,7 +210,7 @@ class _NowPlayingPageState extends State<NowPlayingPage>
               function: _setNextSong,
               icon: Icons.skip_next,
               color: Colors.deepPurple,
-              size: 26),
+              size: 36),
           MediaButtonControl(
               function: _setupReapiOption,
               icon: _repeatingIcon(),
