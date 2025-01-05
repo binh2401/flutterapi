@@ -64,6 +64,11 @@ class _NowPlayingPageState extends State<NowPlayingPage>
 
     _selectedItemIndex = widget.songs.indexOf(widget.playingSong);
     _loopMode = LoopMode.off;
+    _audioPlayerManager.player.playerStateStream.listen((playerState) {
+      if (playerState.processingState == ProcessingState.completed) {
+        _setNextSong();
+      }
+    });
   }
 
   @override
