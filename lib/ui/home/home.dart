@@ -6,9 +6,9 @@ import 'package:demonhac/ui/user/user.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-
 import '../../data/model/song.dart';
 import '../now_playing/playing.dart';
+
 class MusicApp extends StatelessWidget {
   const MusicApp({super.key});
 
@@ -46,11 +46,6 @@ class _MusicHomePageState extends State<MusicHomePage> {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text('Music'),
-    // trailing: IconButton(
-    // onPressed: () {},
-    // icon: const Icon(Icons.find_replace_sharp),
-  //  )
-
       ),
       child: CupertinoTabScaffold(
         tabBar: CupertinoTabBar(
@@ -62,7 +57,7 @@ class _MusicHomePageState extends State<MusicHomePage> {
             BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Setting'),
           ],
         ),
-        tabBuilder: (BuildContext contex, int index) {
+        tabBuilder: (BuildContext context, int index) {
           return _tabs[index];
         },
       ),
@@ -75,7 +70,7 @@ class HomeTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-   return const HomeTabPage();
+    return const HomeTabPage();
   }
 }
 
@@ -87,8 +82,10 @@ class HomeTabPage extends StatefulWidget {
 }
 
 class _HomeTabPageState extends State<HomeTabPage> {
-  List<Song> songs =[];
+  List<Song> songs = [];
+  List<Song> filteredSongs = [];
   late MusicAppViewModel _viewModel;
+  TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
@@ -97,9 +94,22 @@ class _HomeTabPageState extends State<HomeTabPage> {
     observeData();
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
+    return Scaffold(
+      appBar: AppBar(
+        title: TextField(
+          controller: searchController,
+          decoration: const InputDecoration(
+            hintText: 'Tìm bài hát...',
+            border: InputBorder.none,
+          ),
+          onChanged: (value) {
+            filterSongs(value);
+          },
+        ),
+      ),
       body: getBody(),
     );
   }
@@ -108,99 +118,103 @@ class _HomeTabPageState extends State<HomeTabPage> {
   void dispose() {
     _viewModel.songStream.close();
     AudioPlayerManager().dispose();
+    searchController.dispose();
     super.dispose();
   }
 
   Widget getBody() {
     bool showLoading = songs.isEmpty;
-    if(showLoading){
+    if (showLoading) {
       return getProgressBar();
-    }else{
+    } else {
       return getListView();
     }
-
   }
-  Widget getProgressBar(){
+
+  Widget getProgressBar() {
     return const Center(
       child: CircularProgressIndicator(),
     );
   }
 
-  ListView getListView(){
+  ListView getListView() {
     return ListView.separated(
-        itemBuilder: (context, position){
-          return getRow(position);
-        },
-        separatorBuilder: (context, index){
-          return const Divider(
-            color: Colors.grey,
-            thickness: 1,
-            indent: 24,
-            endIndent: 24,
-          );
-        },
-        itemCount: songs.length,
+      itemBuilder: (context, position) {
+        return getRow(position);
+      },
+      separatorBuilder: (context, index) {
+        return const Divider(
+          color: Colors.grey,
+          thickness: 1,
+          indent: 24,
+          endIndent: 24,
+        );
+      },
+      itemCount: filteredSongs.length,
       shrinkWrap: true,
     );
   }
 
-  Widget getRow(int index){
-    print(songs[index].imagePath); // Print imagePath here to debug
+  Widget getRow(int index) {
     return _songItemSection(
       parent: this,
-      song: songs[index],
+      song: filteredSongs[index],
     );
   }
 
-
-
-  void observeData(){
-    _viewModel.songStream.stream.listen((songList){
+  void observeData() {
+    _viewModel.songStream.stream.listen((songList) {
       setState(() {
-        songs.addAll(songList);
+        songs = songList;
+        filteredSongs = songList;
       });
     });
   }
 
-  void find(){
-
-}
-
-  void showBottomSheet(){
-    showModalBottomSheet(context: context, builder: (context) {
-      return ClipRRect(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        child: Container(
-          height: 400,
-          color: Colors.grey,
-          child:Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                const Text('Modal Botton sheet'),
-                ElevatedButton(
-                  onPressed: ()=> Navigator.pop(context),
-                  child: const Text('Close Botton sheet'),
-                )
-              ],
-            ),
-          ) ,
-        ),
-      );
+  void filterSongs(String query) {
+    setState(() {
+      filteredSongs = songs
+          .where((song) =>
+      song.ten.toLowerCase().contains(query.toLowerCase()) ||
+          song.tacgia.toLowerCase().contains(query.toLowerCase()))
+          .toList();
     });
   }
 
+  void showBottomSheet() {
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            child: Container(
+              height: 400,
+              color: Colors.grey,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    const Text('Modal Bottom Sheet'),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Close Bottom Sheet'),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          );
+        });
+  }
 
-  void navigate(Song song){
-    Navigator.push(context,
-    CupertinoPageRoute(builder: (context){
+  void navigate(Song song) {
+    Navigator.push(context, CupertinoPageRoute(builder: (context) {
       return NowPlaying(
-      songs: songs,
-      playingSong: song,
+        songs: songs,
+        playingSong: song,
       );
-    })
-    );
+    }));
   }
 }
 
@@ -215,7 +229,6 @@ class _songItemSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Kiểm tra nếu imagePath là URL tương đối và ghép với URL cơ sở
     String imageUrl = 'http://10.0.2.2:8080${song.imagePath}';
 
     return ListTile(
@@ -226,7 +239,7 @@ class _songItemSection extends StatelessWidget {
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: Image.network(
-          imageUrl,  // Sử dụng imageUrl đã ghép đầy đủ
+          imageUrl,
           width: 48,
           height: 48,
           fit: BoxFit.cover,
