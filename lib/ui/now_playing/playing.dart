@@ -298,6 +298,7 @@ class _NowPlayingPageState extends State<NowPlayingPage>
     } else {
       _loopMode = LoopMode.off;
     }
+    print("Current Loop Mode: $_loopMode");
     setState(() {
       _audioPlayerManager.player.setLoopMode(_loopMode);
     });
